@@ -1,22 +1,26 @@
 <script setup>
 import { generateUUID } from "@/utilities/index"
 
-const todos = useState('todos', () => [])
+// const todos = useState('todos', () => [])
 const todoText = useState('todoText', () => "")
-const {data} = await useFetch("/api/getTodos")
-console.log(data.value.todos)
+const allTodos = useState('allTodos', async () => [])
+
+const { data, refresh } = await useFetch('/api/getTodos')
+allTodos.value = data.value.todos
 
 const addTodo = async () => {
   if(!todoText.value) return
-  const {data} = await useFetch('/api/createTodo', { method: 'post', body: { todo: "todo test" } })
+  await useFetch('/api/createTodo', { method: 'post', body: { id: generateUUID(), todo: todoText.value } })
   // todos.value.push({
   //   id: generateUUID(),
   //   todo: todoText.value
   // })
-  // todoText.value = ""
+  todoText.value = ""
+  refresh()
 }
-const removeTodo = (id) => {
-  todos.value = todos.value.filter(todo => todo.id !== id)
+const removeTodo = async (id) => {
+  await useFetch('/api/deleteTodo', { method: 'delete', body: { id } })
+  refresh()
 }
 
 </script>
@@ -29,7 +33,7 @@ const removeTodo = (id) => {
       <button class="bg-green-500 hover:bg-green-600 py-2 px-4 rounded-md text-white" @click.prevent="addTodo">Add</button>
     </div>
     <ul class="py-6">
-      <div v-for="todo in todos" :key="todo.id">
+      <div v-for="todo in allTodos" :key="todo.id">
         <li class="text-xl mb-2 flex justify-between">
           <span>{{todo.todo}}</span>
           <button class="text-red-500 font-bold" @click="removeTodo(todo.id)">&#10005;</button>
