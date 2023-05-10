@@ -1,26 +1,22 @@
 <script setup>
 import { generateUUID } from "@/utilities/index"
 
-// const todos = useState('todos', () => [])
 const todoText = useState('todoText', () => "")
 const allTodos = useState('allTodos', async () => [])
 
-const { data, refresh } = await useFetch('/api/getTodos')
-allTodos.value = data.value.todos
+const { data, refresh } = await useFetch('/api/getTodos', {transform: (todo) => todo.todos})
+allTodos.value = data.value
+
 
 const addTodo = async () => {
   if(!todoText.value) return
-  await useFetch('/api/createTodo', { method: 'post', body: { id: generateUUID(), todo: todoText.value } })
-  // todos.value.push({
-  //   id: generateUUID(),
-  //   todo: todoText.value
-  // })
+  const data = await useFetch('/api/createTodo', { method: 'post', body: { id: generateUUID(), todo: todoText.value }})
+  allTodos.value.push(...data.data.value.todos)
   todoText.value = ""
-  refresh()
 }
 const removeTodo = async (id) => {
   await useFetch('/api/deleteTodo', { method: 'delete', body: { id } })
-  refresh()
+  allTodos.value = allTodos.value.filter(todo => todo.id !== id)
 }
 
 </script>
