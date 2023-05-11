@@ -1,8 +1,8 @@
 <script setup>
 import { generateUUID } from "@/utilities/index"
 
-const todoText = useState('todoText', () => "")
-const allTodos = useState('allTodos', async () => [])
+const todoText = ref("")
+const allTodos = ref([])
 
 const { data, refresh } = await useFetch('/api/getTodos', {transform: (todo) => todo.todos})
 allTodos.value = data.value
@@ -13,6 +13,7 @@ const addTodo = async () => {
   const data = await useFetch('/api/createTodo', { method: 'post', body: { id: generateUUID(), todo: todoText.value }})
   allTodos.value.push(...data.data.value.todos)
   todoText.value = ""
+  console.log(allTodos.value)
 }
 const removeTodo = async (id) => {
   await useFetch('/api/deleteTodo', { method: 'delete', body: { id } })
